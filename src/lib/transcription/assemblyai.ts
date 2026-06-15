@@ -11,7 +11,7 @@ import type {
 // NOTE: model id / keyterm param names move over time — verify against current docs.
 
 const BASE = "https://api.assemblyai.com";
-const MODEL = process.env.ASSEMBLYAI_SPEECH_MODEL || "universal";
+const MODEL = process.env.ASSEMBLYAI_SPEECH_MODEL || "universal-3-pro";
 
 function key(): string | undefined {
   return process.env.ASSEMBLYAI_API_KEY?.trim() || undefined;
@@ -42,7 +42,8 @@ export const assemblyai: TranscriptionProvider = {
 
     const body: Record<string, unknown> = {
       audio_url: audioUrl,
-      speech_model: MODEL,
+      // AssemblyAI replaced the singular `speech_model` with a `speech_models` array.
+      speech_models: [MODEL],
       language_code: opts.languageCode || "en",
       punctuate: true,
       format_text: true,
