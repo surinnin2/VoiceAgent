@@ -1,0 +1,45 @@
+// VoiceAgent data model.
+// A Recording stores the raw audio once; it has many TranscriptionAttempts so the
+// user can re-run transcription with a different engine / keyterms without re-recording.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Recording {
+  id                 String                 @id @default(cuid())
+  filename           String
+  mimeType           String
+  storagePath        String // path under ./storage, e.g. "audio/<id>.webm"
+  sizeBytes          Int
+  durationMs         Int?
+  preferredAttemptId String? // the attempt the user "starred" as the best result
+  createdAt          DateTime               @default(now())
+  attempts           TranscriptionAttempt[]
+}
+
+model TranscriptionAttempt {
+  id            String    @id @default(cuid())
+  recordingId   String
+  recording     Recording @relation(fields: [recordingId], references: [id], onDelete: Cascade)
+  provider      String // 'assemblyai' | 'elevenlabs' | 'deepgram' | 'mock'
+  model         String
+  status        String    @default("queued") // queued | processing | done | error
+  languageCode  String    @default("en")
+  keyterms      String? // JSON-encoded string[] (domain vocab / proper nouns)
+  contextPrompt String?
+  text          String?
+  words         String? // JSON-encoded { text, start, end, confidence }[]
+  errorMessage  String?
+  durationMs    Int? // wall-clock time the transcription took
+  startedAt     DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime  @default(now())
+
+  @@index([recordingId])
+}
