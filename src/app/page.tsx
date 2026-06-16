@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Recorder } from "@/components/Recorder";
 import { RecordingList } from "@/components/RecordingList";
+import { EnrollmentPanel } from "@/components/EnrollmentPanel";
 
 export default function Home() {
   const [refreshKey, setRefreshKey] = useState(0);
@@ -15,6 +16,7 @@ export default function Home() {
         when you&apos;re not satisfied.
       </p>
       <Recorder onUploaded={() => setRefreshKey((k) => k + 1)} />
+      <EnrollmentPanel />
       <RecordingList refreshKey={refreshKey} />
     </main>
   );

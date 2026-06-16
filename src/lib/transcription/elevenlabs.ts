@@ -27,8 +27,10 @@ export const elevenlabs: TranscriptionProvider = {
   id: "elevenlabs",
   label: "ElevenLabs Scribe v2",
   model: MODEL,
-  note: "Highest raw English accuracy on independent benchmarks.",
+  note: "Highest raw English accuracy; supports diarization + 'only my voice'.",
   isAvailable: () => !!key(),
+  supportsDiarization: true,
+  supportsSpeakerLibrary: true,
   async transcribe(audio, mimeType, opts: TranscribeOptions): Promise<TranscriptionResult> {
     const apiKey = key();
     if (!apiKey) throw new Error("ELEVENLABS_API_KEY is not set");
@@ -37,6 +39,12 @@ export const elevenlabs: TranscriptionProvider = {
     form.append("model_id", MODEL);
     form.append("language_code", iso3(opts.languageCode));
     form.append("timestamps_granularity", "word");
+    // Diarization (who-spoke-when). use_speaker_library is inert without diarize, so we
+    // enable diarize whenever either is requested.
+    if (opts.diarize || opts.useSpeakerLibrary) form.append("diarize", "true");
+    // Match detected speakers against the workspace Speaker Library; matched speakers come
+    // back with their library name in `speaker_id` (unmatched stay "speaker_0", etc.).
+    if (opts.useSpeakerLibrary) form.append("use_speaker_library", "true");
     form.append(
       "file",
       new Blob([new Uint8Array(audio)], { type: mimeType }),
@@ -53,7 +61,14 @@ export const elevenlabs: TranscriptionProvider = {
     const json = (await res.json()) as {
       text?: string;
       language_code?: string;
-      words?: { text: string; start?: number; end?: number; type?: string; logprob?: number }[];
+      words?: {
+        text: string;
+        start?: number;
+        end?: number;
+        type?: string;
+        logprob?: number;
+        speaker_id?: string | null;
+      }[];
     };
 
     const words: TranscriptionWord[] = (json.words || [])
@@ -64,6 +79,7 @@ export const elevenlabs: TranscriptionProvider = {
         end: w.end ?? 0,
         // Derive a rough 0..1 confidence from logprob if the API returned one.
         confidence: typeof w.logprob === "number" ? Math.exp(w.logprob) : null,
+        speaker: w.speaker_id ?? null,
       }));
 
     return {

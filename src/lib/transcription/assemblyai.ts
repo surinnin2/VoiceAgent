@@ -34,6 +34,9 @@ export const assemblyai: TranscriptionProvider = {
   model: MODEL,
   note: "Default — strong English accuracy + per-word confidence + keyterms.",
   isAvailable: () => !!key(),
+  // Diarization not wired up here yet; "only my voice" currently targets ElevenLabs.
+  supportsDiarization: false,
+  supportsSpeakerLibrary: false,
   async transcribe(audio, _mimeType, opts: TranscribeOptions): Promise<TranscriptionResult> {
     const apiKey = key();
     if (!apiKey) throw new Error("ASSEMBLYAI_API_KEY is not set");

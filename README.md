@@ -14,6 +14,7 @@ biggest wins come from **good capture**, **keyterm boosting**, and a **retry tha
 - 🔁 **Retry** with a different engine and/or keyterms + context prompt; **star** the best attempt.
 - 🌈 **Per-word confidence shading** so you can see where the engine was unsure.
 - 🔌 Pluggable engines behind one interface — **AssemblyAI Universal-3 Pro** (default), **ElevenLabs Scribe v2**, **Deepgram Nova-3**, and an always-on **mock** engine so it runs with zero API keys.
+- 🎯 **Only my voice** — diarize a recording and keep only *your* speaker's words, with per-speaker filter chips and optional auto-match against an enrolled voiceprint (ElevenLabs Speaker Library).
 
 ## Stack
 
@@ -53,6 +54,18 @@ src/
     transcription/                 # provider interface + assemblyai/elevenlabs/deepgram/mock + worker
 prisma/schema.prisma               # Recording (1) -> TranscriptionAttempt (N)
 ```
+
+## Only my voice (speaker filtering)
+
+Transcribe a recording and keep only *your* speech, dropping everyone else.
+
+- **How it works:** the engine diarizes (per-word speaker labels); the UI filters the transcript to one speaker. You pick your speaker with the chips, or — if you've enrolled — matching recordings auto-filter to you.
+- **Enrollment (optional, for auto-match):** ElevenLabs has **no public speaker-enrollment API** yet, so enroll your voice once in the ElevenLabs dashboard (**Workspace → Speaker Library**), then paste that speaker name into the in-app **Voice enrollment** panel. Transcribing with ElevenLabs + "Only my voice" sets `diarize:true` + `use_speaker_library:true`; matched words come back tagged with your name and are auto-kept.
+- **Without enrollment:** "Only my voice" still works — it diarizes and you click which speaker is you.
+- **Engines:** ElevenLabs Scribe (diarization + library match) and the mock engine (which fakes a second speaker so you can try the flow offline). AssemblyAI/Deepgram diarization isn't wired up yet, so the toggle is disabled for them.
+- **Privacy:** a voiceprint is **biometric data** (GDPR Art. 9, Illinois BIPA, etc.). Enrollment is **consent-gated**, and we store **only the Speaker Library label — never raw enrollment audio**. Delete it anytime from the enrollment panel.
+
+Data model: `Enrollment` (singleton) holds consent + the library label; each `TranscriptionAttempt` records `diarized` / `onlyEnrolledSpeaker` / `enrolledSpeaker`, and `words[]` carry a per-word `speaker`.
 
 ## Engine notes
 

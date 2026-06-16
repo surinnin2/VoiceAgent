@@ -18,6 +18,7 @@ export async function POST(
     provider?: string;
     keyterms?: unknown;
     contextPrompt?: unknown;
+    onlyMyVoice?: boolean;
   };
 
   const providerId = body.provider || getDefaultProviderId();
@@ -30,6 +31,24 @@ export async function POST(
       { error: `${provider.label} is not configured — add its API key to .env` },
       { status: 400 },
     );
+  }
+
+  const onlyMyVoice = body.onlyMyVoice === true;
+  if (onlyMyVoice && !provider.supportsDiarization) {
+    return NextResponse.json(
+      { error: `${provider.label} does not support "only my voice" (no diarization).` },
+      { status: 400 },
+    );
+  }
+  // If enrolled (consent + a Speaker Library name) and the engine can match it, target that
+  // speaker so matching recordings auto-filter to you. Otherwise we just diarize and let the
+  // user pick their speaker.
+  let enrolledSpeaker: string | null = null;
+  if (onlyMyVoice && provider.supportsSpeakerLibrary) {
+    const enrollment = await prisma.enrollment.findUnique({ where: { id: "default" } });
+    if (enrollment?.consentGiven && enrollment.speakerLabel) {
+      enrolledSpeaker = enrollment.speakerLabel;
+    }
   }
 
   const keyterms = Array.isArray(body.keyterms)
@@ -47,6 +66,9 @@ export async function POST(
       languageCode: "en",
       keyterms: keyterms.length ? JSON.stringify(keyterms) : null,
       contextPrompt: contextPrompt || null,
+      diarized: onlyMyVoice,
+      onlyEnrolledSpeaker: onlyMyVoice,
+      enrolledSpeaker,
     },
   });
 

@@ -23,3 +23,9 @@ export function formatBytes(n: number): string {
   if (n < 1024 * 1024) return `${(n / 1024).toFixed(0)} KB`;
   return `${(n / 1024 / 1024).toFixed(1)} MB`;
 }
+
+// Color per speaker (by order of appearance) for the diarization filter chips/dots.
+const SPEAKER_COLORS = ["#5b8cff", "#3fb950", "#d29922", "#bc6ff1", "#f85149", "#26c0c0"];
+export function speakerColor(index: number): string {
+  return SPEAKER_COLORS[index % SPEAKER_COLORS.length];
+}

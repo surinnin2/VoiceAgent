@@ -3,7 +3,7 @@
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import type { ProviderDTO, RecordingDTO } from "@/lib/dto";
+import type { EnrollmentDTO, ProviderDTO, RecordingDTO } from "@/lib/dto";
 import { AttemptCard } from "@/components/AttemptCard";
 import { RetryPanel, type TranscribeRequest } from "@/components/RetryPanel";
 import { formatBytes, formatDuration } from "@/lib/ui";
@@ -16,6 +16,7 @@ function RecordingDetail() {
   const [recording, setRecording] = useState<RecordingDTO | null>(null);
   const [providers, setProviders] = useState<ProviderDTO[]>([]);
   const [defaultProviderId, setDefaultProviderId] = useState("mock");
+  const [enrollment, setEnrollment] = useState<EnrollmentDTO | null>(null);
   const [busy, setBusy] = useState(false);
   const [notFound, setNotFound] = useState(false);
   const autoStartedRef = useRef(false);
@@ -38,6 +39,10 @@ function RecordingDetail() {
         setProviders(j.providers ?? []);
         setDefaultProviderId(j.defaultProviderId ?? "mock");
       })
+      .catch(() => {});
+    fetch("/api/enrollment")
+      .then((r) => r.json())
+      .then((j) => setEnrollment(j.enrollment ?? null))
       .catch(() => {});
     fetchRecording();
   }, [id, fetchRecording]);
@@ -70,7 +75,12 @@ function RecordingDetail() {
     if (searchParams.get("auto") !== "1") return;
     autoStartedRef.current = true;
     if ((recording.attempts?.length ?? 0) === 0) {
-      startTranscription({ provider: defaultProviderId, keyterms: [], contextPrompt: "" });
+      startTranscription({
+        provider: defaultProviderId,
+        keyterms: [],
+        contextPrompt: "",
+        onlyMyVoice: false,
+      });
     }
   }, [recording, searchParams, defaultProviderId, startTranscription]);
 
@@ -128,6 +138,7 @@ function RecordingDetail() {
       <RetryPanel
         providers={providers}
         defaultProviderId={defaultProviderId}
+        enrollment={enrollment}
         busy={busy}
         onSubmit={startTranscription}
       />

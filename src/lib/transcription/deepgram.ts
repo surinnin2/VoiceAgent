@@ -21,6 +21,8 @@ export const deepgram: TranscriptionProvider = {
   model: MODEL,
   note: "Best per-word confidence + keyterm prompting; fastest.",
   isAvailable: () => !!key(),
+  supportsDiarization: false,
+  supportsSpeakerLibrary: false,
   async transcribe(audio, mimeType, opts: TranscribeOptions): Promise<TranscriptionResult> {
     const apiKey = key();
     if (!apiKey) throw new Error("DEEPGRAM_API_KEY is not set");
