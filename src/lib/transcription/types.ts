@@ -6,6 +6,7 @@ export interface TranscriptionWord {
   start: number; // seconds
   end: number; // seconds
   confidence: number | null; // 0..1, or null when the provider doesn't expose per-word confidence
+  speaker?: string | null; // diarization label, e.g. "speaker_0" or an enrolled name; null/undefined if not diarized
 }
 
 export interface TranscriptionResult {
@@ -21,6 +22,16 @@ export interface TranscribeOptions {
   contextPrompt?: string;
   /** ISO language; defaults to English. */
   languageCode?: string;
+  /** Return per-word speaker labels (who-spoke-when). */
+  diarize?: boolean;
+  /** Match diarized speakers against the provider's enrolled Speaker Library. */
+  useSpeakerLibrary?: boolean;
+  /**
+   * The enrolled speaker label we want to keep ("me"). Real engines (ElevenLabs) match
+   * server-side via the library and return this name in `speaker`; the mock engine uses
+   * this to label its primary speaker so the local "only my voice" demo works end-to-end.
+   */
+  enrolledSpeaker?: string;
 }
 
 export interface TranscriptionProvider {
@@ -34,6 +45,10 @@ export interface TranscriptionProvider {
   isAvailable: () => boolean;
   /** One-line note shown in the UI about what this engine is good for. */
   note: string;
+  /** Returns per-word speaker labels when asked to diarize. */
+  supportsDiarization: boolean;
+  /** Can match diarized speakers against an enrolled voiceprint (Speaker Library). */
+  supportsSpeakerLibrary: boolean;
   transcribe: (
     audio: Buffer,
     mimeType: string,

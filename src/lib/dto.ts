@@ -10,6 +10,9 @@ export interface AttemptDTO {
   languageCode: string;
   keyterms: string | null;
   contextPrompt: string | null;
+  diarized: boolean;
+  onlyEnrolledSpeaker: boolean;
+  enrolledSpeaker: string | null;
   text: string | null;
   words: string | null;
   errorMessage: string | null;
@@ -37,4 +40,18 @@ export interface ProviderDTO {
   model: string;
   note: string;
   available: boolean;
+  supportsDiarization: boolean;
+  supportsSpeakerLibrary: boolean;
+}
+
+export interface EnrollmentDTO {
+  id: string;
+  label: string;
+  provider: string;
+  speakerLabel: string | null;
+  consentGiven: boolean;
+  consentAt: string | null;
+  consentVersion: string;
+  createdAt: string;
+  updatedAt: string;
 }

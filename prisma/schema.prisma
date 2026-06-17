@@ -33,8 +33,12 @@ model TranscriptionAttempt {
   languageCode  String    @default("en")
   keyterms      String? // JSON-encoded string[] (domain vocab / proper nouns)
   contextPrompt String?
+  // "Only my voice": diarize, then keep only the enrolled/selected speaker's words.
+  diarized            Boolean @default(false)
+  onlyEnrolledSpeaker Boolean @default(false)
+  enrolledSpeaker     String? // the speaker label we tried to match (from Enrollment)
   text          String?
-  words         String? // JSON-encoded { text, start, end, confidence }[]
+  words         String? // JSON-encoded { text, start, end, confidence, speaker }[]
   errorMessage  String?
   durationMs    Int? // wall-clock time the transcription took
   startedAt     DateTime?
@@ -42,4 +46,20 @@ model TranscriptionAttempt {
   createdAt     DateTime  @default(now())
 
   @@index([recordingId])
+}
+
+// Singleton (id = "default") for this single-user app. Holds the consent record and the
+// ElevenLabs Speaker Library speaker name to match against ("only my voice").
+// A voiceprint reference is BIOMETRIC data — we store only the library label + consent,
+// never raw enrollment audio.
+model Enrollment {
+  id             String    @id // always "default"
+  label          String    @default("Me") // display label
+  provider       String    @default("elevenlabs")
+  speakerLabel   String? // the speaker_id/name registered in the provider's Speaker Library
+  consentGiven   Boolean   @default(false)
+  consentAt      DateTime?
+  consentVersion String    @default("v1")
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 }

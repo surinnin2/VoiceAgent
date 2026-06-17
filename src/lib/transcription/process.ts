@@ -39,6 +39,12 @@ export async function processAttempt(attemptId: string): Promise<void> {
       keyterms,
       contextPrompt: attempt.contextPrompt ?? undefined,
       languageCode: attempt.languageCode,
+      diarize: attempt.diarized,
+      useSpeakerLibrary:
+        attempt.onlyEnrolledSpeaker &&
+        provider.supportsSpeakerLibrary &&
+        !!attempt.enrolledSpeaker,
+      enrolledSpeaker: attempt.enrolledSpeaker ?? undefined,
     });
 
     const completedAt = new Date();

@@ -15,6 +15,8 @@ export function listProviders() {
     model: p.model,
     note: p.note,
     available: p.isAvailable(),
+    supportsDiarization: p.supportsDiarization,
+    supportsSpeakerLibrary: p.supportsSpeakerLibrary,
   }));
 }
 
