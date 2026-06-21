@@ -3,6 +3,7 @@ import { startTranscription } from "@/lib/transcription/start";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 60; // budget for the post-response transcription (after())
 
 export async function POST(
   req: Request,

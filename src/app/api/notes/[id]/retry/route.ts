@@ -4,6 +4,7 @@ import { startTranscription } from "@/lib/transcription/start";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 60; // budget for the post-response transcription (after())
 
 // Re-transcribe a note's audio with the default engine. For an un-edited note the fresh transcript
 // replaces the body (the common "the auto transcript was bad" case); a hand-edited note keeps its

@@ -1,3 +1,4 @@
+import { after } from "next/server";
 import { prisma } from "@/lib/db";
 import { getDefaultProviderId, getProvider } from "./index";
 import { processAttempt } from "./process";
@@ -70,8 +71,11 @@ export async function startTranscription(
     },
   });
 
-  // Fire-and-forget locally; on serverless this becomes a durable queue job (see deploy milestone).
-  void processAttempt(attempt.id);
+  // Run the transcription after the HTTP response is sent. next/server's `after()` keeps the
+  // function alive on serverless (uses the platform waitUntil) so the work isn't killed when the
+  // request returns — unlike a bare fire-and-forget promise. For very long audio, graduate this to
+  // a durable queue (see MILESTONES A3); short notes finish well within the function budget.
+  after(() => processAttempt(attempt.id));
 
   return { ok: true, attemptId: attempt.id };
 }
