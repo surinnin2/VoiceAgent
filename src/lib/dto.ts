@@ -34,6 +34,30 @@ export interface RecordingDTO {
   _count?: { attempts: number };
 }
 
+export interface CategoryDTO {
+  id: string;
+  name: string;
+  color: string | null;
+  isInbox: boolean;
+  position: number;
+  createdAt: string;
+  noteCount?: number;
+}
+
+export interface NoteDTO {
+  id: string;
+  title: string | null;
+  body: string;
+  edited: boolean;
+  status: "transcribing" | "done" | "error" | string;
+  categoryId: string;
+  recordingId: string | null;
+  durationMs: number | null;
+  createdAt: string;
+  updatedAt: string;
+  category?: { id: string; name: string; color: string | null } | null;
+}
+
 export interface ProviderDTO {
   id: string;
   label: string;

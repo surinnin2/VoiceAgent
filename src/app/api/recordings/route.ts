@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { saveAudio } from "@/lib/storage";
+import { resolveCategoryId } from "@/lib/categories";
+import { startTranscription } from "@/lib/transcription/start";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -31,6 +33,11 @@ export async function POST(req: Request) {
   }
   const mimeType = file.type || "audio/webm";
 
+  const categoryRaw = form.get("categoryId");
+  const categoryId = await resolveCategoryId(
+    typeof categoryRaw === "string" ? categoryRaw : null,
+  );
+
   // Create the row first to mint an id, then persist the bytes under that id.
   const recording = await prisma.recording.create({
     data: {
@@ -47,5 +54,19 @@ export async function POST(req: Request) {
     data: { storagePath },
   });
 
-  return NextResponse.json({ recording: updated }, { status: 201 });
+  // The user-facing note. It starts "transcribing"; the worker fills body + title when done.
+  const note = await prisma.note.create({
+    data: { categoryId, recordingId: recording.id, status: "transcribing" },
+  });
+
+  // Auto-transcribe with the default engine — seamless, no extra tap. The recording + note are
+  // already saved; if transcription can't even start (e.g. no provider configured), mark the note
+  // errored rather than leaving it stuck "transcribing" with no retry affordance.
+  const tx = await startTranscription(recording.id, {});
+  if (!tx.ok) {
+    await prisma.note.update({ where: { id: note.id }, data: { status: "error" } });
+    note.status = "error";
+  }
+
+  return NextResponse.json({ recording: updated, note }, { status: 201 });
 }

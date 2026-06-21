@@ -21,6 +21,36 @@ model Recording {
   preferredAttemptId String? // the attempt the user "starred" as the best result
   createdAt          DateTime               @default(now())
   attempts           TranscriptionAttempt[]
+  note               Note? // the categorized voice-note produced from this recording
+}
+
+// A categorized voice-note: the user-facing object. Its `body` is seeded from the recording's
+// transcription but is independently editable, so hand-edits survive a re-transcription.
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  color     String? // optional hex accent
+  isInbox   Boolean  @default(false) // the default bucket; capture never blocks on a choice
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+  notes     Note[]
+}
+
+model Note {
+  id          String     @id @default(cuid())
+  title       String? // auto-derived from the transcript (first line), user-editable
+  body        String     @default("") // editable text, seeded from the transcription
+  edited      Boolean    @default(false) // true once the user edits body — blocks auto-overwrite
+  status      String     @default("transcribing") // transcribing | done | error
+  categoryId  String
+  category    Category   @relation(fields: [categoryId], references: [id])
+  recordingId String?    @unique // the source audio (one note per recording)
+  recording   Recording? @relation(fields: [recordingId], references: [id])
+  position    Int        @default(0)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([categoryId])
 }
 
 model TranscriptionAttempt {
