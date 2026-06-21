@@ -101,6 +101,22 @@ input, select, textarea {
 /* ---------- Capture screen ---------- */
 .capture-page { display: flex; flex-direction: column; gap: 8px; }
 
+.install-hint {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.install-hint strong { color: var(--text); font-weight: 600; }
+.install-hint .primary { background: var(--accent-2); border-color: var(--accent-2); color: #fff; }
+.install-x { margin-left: auto; padding: 4px 8px; color: var(--muted); border-color: transparent; background: transparent; }
+
 .chips {
   display: flex;
   gap: 8px;

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Recorder } from "@/components/Recorder";
 import { CategoryChips } from "@/components/CategoryChips";
+import { InstallHint } from "@/components/InstallHint";
 import type { CategoryDTO } from "@/lib/dto";
 
 const LS_KEY = "va.selectedCategory";
@@ -48,6 +49,7 @@ export default function CapturePage() {
 
   return (
     <main className="capture-page">
+      <InstallHint />
       <CategoryChips
         categories={categories}
         selectedId={selectedId}
